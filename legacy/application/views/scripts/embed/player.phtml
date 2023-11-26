@@ -9,6 +9,8 @@
     <script src="<?php echo $this->jquery_i18n ?>" type="text/javascript"></script-->
     <script src="/locale/general-translation-table" type="text/javascript"></script>
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
+
+ <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
      <script type="text/javascript">
         //$.i18n.setDictionary(general_dict);
 
@@ -39,7 +41,7 @@
                 this.settings.url = stream["url"];
                 this.settings.codec = stream["codec"];
             }
-
+this.settings.url="http://localhost/hls/main";
             // Create the Muses player object
             playerhtml5_insert(this.settings);
             playerhtml5_audio = document.getElementById(id_element);
@@ -111,7 +113,7 @@
 
         Html5Player.prototype.play = function() {
             console.log('play');
-            playerhtml5_audio.src = this.settings.url;
+            //playerhtml5_audio.src = this.settings.url;
             playerhtml5_audio.play();
             togglePlayStopButton();
         };
@@ -228,7 +230,8 @@
 
                     let schedule_list=document.getElementsByClassName('schedule_list');
                     if (data.next === null) {
-                        $("ul.schedule_list").find("li").html($.i18n._("Nothing scheduled"));
+                        //$("ul.schedule_list").find("li").html($.i18n._("Nothing scheduled"));
+                        schedule_list[0].children[0].innerHTML="Nothing scheduled";
                     } else {
                         //$("ul.schedule_list").find("li").html(data.next.name);
                         schedule_list[0].children[0].innerHTML=data.next.name;
@@ -410,8 +413,8 @@ metadataxhr.send( );
         set the height and width to 1px so users will not see it.
         */
         #html5player_skin {
-            width: 0;
-            height: 0;
+            width: 800;
+            height: 800;
             overflow: hidden;
         }
         #time_bar{
@@ -487,6 +490,34 @@ metadataxhr.send( );
     <div id="html5player_skin">
         <script type="text/javascript">
             var html5Player = new Html5Player();
+            var audios=document .getElementsByTagName('video');
+            var video=audios[0];
+/*var player = videojs(   audio.id);
+player.play();
+////*/
+ var videoSrc = html5Player.settings.url ;// "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8";
+ if (Hls.isSupported()) {
+    var hls = new Hls();
+    hls.loadSource(videoSrc);
+    hls.attachMedia(video);
+    video.play();
+  }
+  // HLS.js is not supported on platforms that do not have Media Source
+  // Extensions (MSE) enabled.
+  //
+  // When the browser has built-in HLS support (check using `canPlayType`),
+  // we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video
+  // element through the `src` property. This is using the built-in support
+  // of the plain video element, without using HLS.js.
+  //
+  // Note: it would be more normal to wait on the 'canplay' event below however
+  // on Safari (where you are most likely to find built-in HLS support) the
+  // video.src URL must be on the user-driven white-list before a 'canplay'
+  // event will be emitted; the last video event that can be reliably
+  // listened-for when the URL is not on the white-list is 'loadedmetadata'.
+  else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = videoSrc;
+  }
         </script>
     </div>
 

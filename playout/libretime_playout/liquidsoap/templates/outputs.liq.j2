@@ -57,7 +57,54 @@ output_icecast_{{ output_id }}_source = mean(s)
 {% if output.audio.format == "ogg" and not output.audio.enable_metadata -%}
 # Disable ogg metadata
 output_icecast_{{ output_id }}_source = add(normalize=false, [amplify(0.00001, noise()), output_icecast_{{ output_id }}_source])
+
 {% endif -%}
+{% if output.audio.format == "ogg" and not output.audio.enable_metadata -%}
+
+s = output_icecast_{{ output_id }}_source
+
+aac_lofi = %ffmpeg(format="mpegts",
+                   %audio(
+                     codec="libmp3lame"
+                   ))
+
+aac_midfi = %ffmpeg(format="mpegts",
+                    %audio(
+                      codec="libmp3lame",
+                      channels=2,
+                      ar=44100,
+                      b="96k"
+                    ))
+
+aac_hifi = %ffmpeg(format="mpegts",
+                   %audio(
+                     codec="libmp3lame",
+                     channels=2,
+                     ar=44100,
+                     b="192k"
+                   ))
+
+streams = [ #("aac_lofi",aac_lofi),
+           #("aac_midfi", aac_midfi),
+           ("aac_hifi", aac_hifi)
+           ]
+
+def segment_name(~position,~extname,stream_name) =
+  timestamp = int_of_float(time())
+  duration = 2
+  "#{stream_name}_#{duration}_#{timestamp}_#{position}.#{extname}"
+end
+
+output.file.hls(playlist=input_main_mount,
+                segment_duration=2.0,
+                segments=3,
+                segments_overhead=3,
+                segment_name=segment_name,
+#                persist_at="/tmp/hls/state.config",
+                "/var/lib/libretime/playout/hls",
+                streams,
+                s)
+{% else -%}
 
 output.icecast(
   id="icecast:{{ output_id }}",
@@ -76,6 +123,7 @@ output.icecast(
   {{ icecast_encoder(output.audio) | indent(width=2) }},
   output_icecast_{{ output_id }}_source,
 )
+{% endif -%}
 {%- endmacro -%}
 
 {#-
