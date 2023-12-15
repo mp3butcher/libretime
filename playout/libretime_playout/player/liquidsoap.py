@@ -67,6 +67,14 @@ class TelnetLiquidsoap:
         try:
             annotation = create_liquidsoap_annotation(file_event)
             self.liq_client.queue_push(queue_id, annotation, file_event.show_name)
+            logger.info(
+                "FOKkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+            )
+            logger.info(file_event)
+            with self.liq_client.conn:
+                self.liq_client._set_var(
+                    "trackid", self.liq_client._quote(file_event.id)
+                )
         except OSError as exception:
             logger.exception(exception)
 

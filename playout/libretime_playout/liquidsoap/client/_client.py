@@ -46,6 +46,12 @@ class LiquidsoapClient:
         result = self.conn.read()
         if f"Variable {name} set" not in result:
             logger.error(result)
+        # self.conn.write(('oscsend localhost 7777 "/metadata" ss "title" "The new title"')
+        # self.conn.write(f"dummy.0.metadata.insert TCON = val1")
+        self.conn.write(f"help")
+        result = self.conn.read()
+        if f"Variable {name} set" not in result:
+            logger.error(result)
 
     def version(self) -> Tuple[int, int, int]:
         with self.conn:
@@ -75,6 +81,7 @@ class LiquidsoapClient:
             self.conn.write(f"s{queue_id}.push {entry}")
             self.conn.read()  # Flush
             self._set_var("show_name", self._quote(show_name))
+            self._set_var("trackid", self._quote("fokol"))
 
     def web_stream_get_id(self) -> str:
         with self.conn:

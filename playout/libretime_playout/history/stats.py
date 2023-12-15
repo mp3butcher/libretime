@@ -1,4 +1,5 @@
 import logging
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
@@ -69,6 +70,28 @@ class StatsCollector:
             )
             return stats
 
+        logger.info("starting libretime stats")
+        ytimestamp = datetime.fromtimestamp(datetime.utcnow().timestamp() - 60000)
+        ystats_timestamp = ytimestamp.strftime("%d/%m/%Y:%H:%M")
+        # awk -F 28\/Nov\/2023 '{print $1}' <  /var/log/nginx/libretime.access.log|sort|uniq |wc -l
+        first = ["awk", "-F", "ystats_timestamp", "'{print $1}'"]
+        second = ["/home/xeul/librestat.sh", ystats_timestamp]
+        # myinput = open('/var/log/nginx/libretime.access.log','r')
+        # p1 = subprocess.Popen(first, stdout=subprocess.PIPE)
+        # p2 = subprocess.Popen(second, stdin=p1.stdout, stdout=subprocess.PIPE)
+        cmd = [
+            "awk",
+            "-F "
+            + ystats_timestamp
+            + " '{print $1}' </var/log/nginx/libretime.access.log |sort|uniq|wc -l",
+        ]
+
+        logger.info(ystats_timestamp)
+        logger.info(subprocess.check_output(second))
+        listeners = 1
+        stats["hlsmain"] = Stats(
+            listeners=listeners,
+        )
         # Icecast specific parsing
         for source in root.iterchildren("source"):
             mount = source.attrib.get("mount")
