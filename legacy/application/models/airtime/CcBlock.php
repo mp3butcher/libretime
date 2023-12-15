@@ -12,7 +12,7 @@ class CcBlock extends BaseCcBlock
     /**
      * Get the [optionally formatted] temporal [utime] column value.
      *
-     * @param string $format The date/time format string (either date()-style or strftime()-style).
+     * @param string $format The date/time format string (either date()-style).
      *                       If format is NULL, then the raw DateTime object will be returned.
      *
      * @return mixed Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
@@ -21,7 +21,6 @@ class CcBlock extends BaseCcBlock
      */
     public function getDbUtime($format = 'Y-m-d H:i:s')
     {
-            Logging::info('getDbUtime');
         if ($this->utime === null) {
             return null;
         }
@@ -37,7 +36,7 @@ class CcBlock extends BaseCcBlock
             return $dt;
         }
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            throw new PropelException('strftime format not supported anymore');
         }
 
         return $dt->format($format);
@@ -46,7 +45,7 @@ class CcBlock extends BaseCcBlock
     /**
      * Get the [optionally formatted] temporal [mtime] column value.
      *
-     * @param string $format The date/time format string (either date()-style or strftime()-style).
+     * @param string $format The date/time format string (either date()-style).
      *                       If format is NULL, then the raw DateTime object will be returned.
      *
      * @return mixed Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
@@ -55,7 +54,6 @@ class CcBlock extends BaseCcBlock
      */
     public function getDbMtime($format = 'Y-m-d H:i:s')
     {
-            Logging::info('getDbMtime');
         if ($this->mtime === null) {
             return null;
         }
@@ -70,11 +68,8 @@ class CcBlock extends BaseCcBlock
             // Because propel.useDateTimeClass is TRUE, we return a DateTime object.
             return $dt;
         }
-        
-            Logging::info('getDbMtime');
-            Logging::info(strftime($format, $dt->format('U')));
         if (strpos($format, '%') !== false) {
-            return strftime($format, $dt->format('U'));
+            throw new PropelException('strftime format not supported anymore');
         }
 
         return $dt->format($format);

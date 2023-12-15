@@ -398,7 +398,9 @@ class ScheduleController extends Zend_Controller_Action
         $this->view->percentFilled = $show->getPercentScheduled();
         $this->view->showContent = $show->getShowListContent();
         $this->view->dialog = $this->view->render('schedule/show-content-dialog.phtml');
-        $this->view->showTitle = htmlspecialchars($show->getName());
+        if ($show->getName()) {
+           $this->view->showTitle = htmlspecialchars($show->getName());
+        }
         unset($this->view->showContent);
     }
 
@@ -607,7 +609,6 @@ class ScheduleController extends Zend_Controller_Action
 
         $this->view->addNewShow = true;
 
-            Logging::info('addShowAction');
         if ($data['add_show_start_now'] == 'now') {
             // have to use the timezone the user has entered in the form to check past/present
             $showTimezone = new DateTimeZone($data['add_show_timezone']);
@@ -619,23 +620,17 @@ class ScheduleController extends Zend_Controller_Action
             $data['add_show_start_date'] = $nowDateTime->format('Y-m-d');
         }
 
-            Logging::info('addShowAction');	
         if ($service_showForm->validateShowForms($forms, $data)) {
-            Logging::info('addShowAction');
             // Get the show ID from the show service to pass as a parameter to the RESTful ShowImageController
             $this->view->showId = $service_show->addUpdateShow($data);
 
             // send new show forms to the user
-            Logging::info('addShowAction');
             $this->createShowFormAction(true);
-            Logging::info('addShowAction');
             $this->view->newForm = $this->view->render('schedule/add-show-form.phtml');
 
-            Logging::info('Show creation succeeded');
+            Logging::debug('Show creation succeeded');
         } else {
             $this->view->form = $this->view->render('schedule/add-show-form.phtml');
-            Logging::debug($data['add_show_start_time']);
-            Logging::info('Show creation failed');
             Logging::debug('Show creation failed');
         }
     }

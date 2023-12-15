@@ -11,7 +11,7 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
 
  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-     <script type="text/javascript">
+     <script type="text/javascript"  type=module >
         //$.i18n.setDictionary(general_dict);
 
         var MAX_MOBILE_SCREEN_WIDTH = 760;
@@ -41,7 +41,7 @@
                 this.settings.url = stream["url"];
                 this.settings.codec = stream["codec"];
             }
-this.settings.url="http://localhost/hls/main";
+//this.settings.url="http://localhost:80/hls/main";
             // Create the Muses player object
             playerhtml5_insert(this.settings);
             playerhtml5_audio = document.getElementById(id_element);
@@ -130,13 +130,13 @@ this.settings.url="http://localhost/hls/main";
         }
 
 
-        window.onload=function(){ 
+        window.onload=function(){
             let playbuts=document.getElementsByClassName('play');
-            playbuts[0].onClick=function(){  
-        
+            playbuts[0].onClick=function(){
+
                 if (playbuts[0].hasClass("pause"))
                     html5Player.stop();
-                else  
+                else
                     html5Player.play();
                 playbuts[0].classList.toggle("pause");
             };
@@ -172,14 +172,14 @@ this.settings.url="http://localhost/hls/main";
         //
         // The metadata is fetched when the current track is about to end.
         function attachStreamMetadataToPlayer() {
-        
+
             let metadataxhr = new XMLHttpRequest();
-            metadataxhr.open('GET', "<?php echo $this->metadata_api_url ?>?type=interval&limit=5&version=18");
+            metadataxhr.open('GET', "<?php echo $this->metadata_api_url ?>");
             metadataxhr.onload = function() {
                     if (metadataxhr.status != 200) { metadataxhr.onerror();return;}
- 
+
                     let data=JSON.parse(this.response);
-                    var nowdivs=document.getElementsByClassName('now_playing');                    
+                    var nowdivs=document.getElementsByClassName('now_playing');
 		    var rcursor=document.getElementById("radio_cursor");
                     if (data.current === null) {
                         if (data.currentShow != null && data.currentShow.length > 0) {
@@ -192,7 +192,7 @@ this.settings.url="http://localhost/hls/main";
                         }
                         time_to_next_track_starts = 20000;
                     } else {
-                    
+
                         //console.log( data.current.name);
                         var artist = '';// data.current.name;//.split(" - ")[0];
                         var track =data.current.name;//.split(" - ")[1];
@@ -203,17 +203,17 @@ this.settings.url="http://localhost/hls/main";
                         if (track) {
                             nowPlayingHtml +=  track ;
                         }
-                         
+
                         //$("div.now_playing").html(nowPlayingHtml);
                         fillNodeArray(nowdivs,nowPlayingHtml);
 
                         current_track_end_time = new Date(data.current.ends);
                         var artwork_url=data.current.metadata.artwork_url;
-                        
+
                         artwork_url=artwork_url.replace('&amp;','&');
                         //$("#artwork_image").attr('src', artwork_url );
                         document.getElementById('artwork_image').src=artwork_url;
-                        
+
                         if (current_track_end_time == "Invalid Date" || isNaN(current_track_end_time)) {
                             // If the conversion didn't work (since the String is not in ISO format)
                             // then change it to be ISO-compliant. This is somewhat hacky and may break
@@ -235,41 +235,42 @@ this.settings.url="http://localhost/hls/main";
                     } else {
                         //$("ul.schedule_list").find("li").html(data.next.name);
                         schedule_list[0].children[0].innerHTML=data.next.name;
-                        
+
                     }
-                    
-                    
+
+
                  //Preventative code if the local and remote clocks are out of sync.
             if (isNaN(time_to_next_track_starts) || time_to_next_track_starts < 0) {
                 time_to_next_track_starts = 0;
             }
 
-            
+
 		var current_time = new Date();
-		var current_time = new Date(current_time.getTime() -8000+//timeoffset  hls stream is 8s late on calendar
+		var metadelay = self.html5Player.settings.codec == 'hls' ? 8000 : 0; //timeoffset  hls stream is 8s late on calendar
+		var current_time = new Date(current_time.getTime() - metadelay+
 		 current_time.getTimezoneOffset() * 60 * 1000);
 
 		/*if (current_track_end_time === undefined )
 			time_to_next_track_starts=0;
 		else*/
 			time_to_next_track_starts = current_track_end_time - current_time;
-		 
-		 
+
+
 		var cursor_ratio=rcursor.clientWidth/rcursor.parentNode.clientWidth; ///cursor size in perc of its parent
-		var time_from_start_time= (current_time-current_track_start_time ) /(current_track_end_time-current_track_start_time); 
+		var time_from_start_time= (current_time-current_track_start_time ) /(current_track_end_time-current_track_start_time);
 		console.log(time_from_start_time);//hoping perc
 		//time_from_start_time=0;
 		time_from_start_time=time_from_start_time*(1.0-cursor_ratio);
 		var transl=(1.0-cursor_ratio)/cursor_ratio;
-		console.log(transl);//hoping perc 
-		
+		console.log(transl);//hoping perc
+
 
 		 // $("#radio_cursor").attr('style', cursor_transition );
 		console.log('current_track_end_time'+current_track_end_time);
 		console.log('current_time'+current_time);
-		console.log('time_to_next_track_starts'+time_to_next_track_starts/1000);  		 
-		 
-		 
+		console.log('time_to_next_track_starts'+time_to_next_track_starts/1000);
+
+
 		const cursoranimate = [
 		{ transform: "translate("+(time_from_start_time*100/cursor_ratio)+"%) " },
 		{ transform: "translate("+transl*100+"%) " },
@@ -278,16 +279,16 @@ this.settings.url="http://localhost/hls/main";
 		duration: Math.max(time_to_next_track_starts,0) ,
 		iterations: 1,
 		};
-		console.log(rcursor.clientWidth/rcursor.parentNode.clientWidth); 
-		rcursor.animate(cursoranimate, cursoranimateTiming);  
-		  
-		metadataTimer= setTimeout(attachStreamMetadataToPlayer,time_to_next_track_starts+ 3000); 
-                    
-                    
-                    
-                    
+		console.log(rcursor.clientWidth/rcursor.parentNode.clientWidth);
+		rcursor.animate(cursoranimate, cursoranimateTiming);
+
+		metadataTimer= setTimeout(attachStreamMetadataToPlayer,time_to_next_track_starts+ 3000);
+
+
+
+
                 }
-                
+
                 /*function() {
   if (metadataxhr.status != 200) { // analyse l'état HTTP de la réponse
     alert(`Error ${metadataxhr.status}: ${metadataxhr.statusText}`); // e.g. 404: Not Found
@@ -300,8 +301,8 @@ this.settings.url="http://localhost/hls/main";
 metadataxhr.onerror = function() {
   console.log("Metadata request failed, relaunching in 5 sec");
   metadataTimer= setTimeout(attachStreamMetadataToPlayer, 5000);
-}; 
-metadataxhr.send( ); 
+};
+metadataxhr.send( );
 
             /*$.ajax({
                 url: "/api/live-info",
@@ -321,7 +322,7 @@ metadataxhr.send( );
                         }
                         time_to_next_track_starts = 20000;
                     } else {
-                    
+
                         console.log( data.current.name);
                         var artist = '';// data.current.name;//.split(" - ")[0];
                         var track =data.current.name;//.split(" - ")[1];
@@ -337,7 +338,7 @@ metadataxhr.send( );
 
                         current_track_end_time = new Date(data.current.ends);
                         var artwork_url=data.current.metadata.artwork_url;
-                        
+
                         artwork_url=artwork_url.replace('&amp;','&');
                         //artwork_url='https://deltacast.hd.free.fr/api/track?id=26&return=artwork';
                         $("#artwork_image").attr('src', artwork_url );
@@ -366,7 +367,7 @@ metadataxhr.send( );
                 time_to_next_track_starts = 0;
             }
 
-            
+
 		var current_time = new Date();
 		var current_time = new Date(current_time.getTime() + current_time.getTimezoneOffset() * 60 * 1000);
 
@@ -374,7 +375,7 @@ metadataxhr.send( );
 			time_to_next_track_starts=0;
 		else* /
 			time_to_next_track_starts = current_track_end_time - current_time;
-		var time_from_start_time= (current_time-current_track_start_time ) /(current_track_end_time-current_track_start_time); 
+		var time_from_start_time= (current_time-current_track_start_time ) /(current_track_end_time-current_track_start_time);
 		console.log(time_from_start_time);//hoping perc
 		var cursor_ratio=3; ///cursor size in perc of its parent
 		var transl=(100*(100-cursor_ratio))/cursor_ratio;
@@ -387,14 +388,14 @@ metadataxhr.send( );
 		 // $("#radio_cursor").attr('style', cursor_transition );
 		console.log('current_track_end_time'+current_track_end_time);
 		console.log('current_time'+current_time);
-		console.log('time_to_next_track_starts'+time_to_next_track_starts/1000);         
-		document.getElementById("radio_cursor").style=  cursor_transition;         
-		// Add 3 seconds to the timeout so Airtime has time to update the metadata before we fetch it 
-		metadataTimer = null; 
+		console.log('time_to_next_track_starts'+time_to_next_track_starts/1000);
+		document.getElementById("radio_cursor").style=  cursor_transition;
+		// Add 3 seconds to the timeout so Airtime has time to update the metadata before we fetch it
+		metadataTimer = null;
 		metadataTimer= setTimeout(attachStreamMetadataToPlayer,time_to_next_track_starts+ 3000);
 		 //Math.max(time_to_next_track_starts+ 3000,0) );
 */
-           
+
 
 
         }
@@ -415,15 +416,15 @@ metadataxhr.send( );
         #time_bar{
             width:100%;
             overflow:hidden;
-            height: 20px;   
+            height: 20px;
             //background-color:rgb(53,230,197);
             display:inline-block;
-        } 
+        }
         #radio_cursor
         {
             width:3%;
             position:relative;
-            display: block; 
+            display: block;
             height: 100%;
             background-color: #787878;
             opacity:0.5;
@@ -484,6 +485,336 @@ metadataxhr.send( );
 
     <div id="html5player_skin">
         <script type="text/javascript">
+        let decoder ;
+
+function getTextDecoder() {
+  if (!decoder && typeof self.TextDecoder !== 'undefined') {
+    decoder = new self.TextDecoder('utf-8');
+  }
+
+  return decoder;
+}
+   function utf8ArrayToStr  (
+  array ,
+  exitOnNull  = false,
+)  {
+  const decoder = getTextDecoder();
+  if (decoder) {
+    const decoded = decoder.decode(array);
+
+    if (exitOnNull) {
+      // grab up to the first null
+      const idx = decoded.indexOf('\0');
+      return idx !== -1 ? decoded.substring(0, idx) : decoded;
+    }
+
+    // remove any null characters
+    return decoded.replace(/\0/g, '');
+  }
+
+  const len = array.length;
+  let c;
+  let char2;
+  let char3;
+  let out = '';
+  let i = 0;
+  while (i < len) {
+    c = array[i++];
+    if (c === 0x00 && exitOnNull) {
+      return out;
+    } else if (c === 0x00 || c === 0x03) {
+      // If the character is 3 (END_OF_TEXT) or 0 (NULL) then skip it
+      continue;
+    }
+    switch (c >> 4) {
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+        // 0xxxxxxx
+        out += String.fromCharCode(c);
+        break;
+      case 12:
+      case 13:
+        // 110x xxxx   10xx xxxx
+        char2 = array[i++];
+        out += String.fromCharCode(((c & 0x1f) << 6) | (char2 & 0x3f));
+        break;
+      case 14:
+        // 1110 xxxx  10xx xxxx  10xx xxxx
+        char2 = array[i++];
+        char3 = array[i++];
+        out += String.fromCharCode(
+          ((c & 0x0f) << 12) | ((char2 & 0x3f) << 6) | ((char3 & 0x3f) << 0),
+        );
+        break;
+      default:
+    }
+  }
+  return out;
+};
+
+function decodeFrame  (frame){
+  if (frame.type === 'PRIV') {
+    return decodePrivFrame(frame);
+  } else if (frame.type[0] === 'W') {
+    return decodeURLFrame(frame);
+  }
+
+  return decodeTextFrame(frame);
+};
+
+function decodePrivFrame  (
+  frame
+) {
+  /*
+  Format: <text string>\0<binary data>
+  */
+  if (frame.size < 2) {
+    return undefined;
+  }
+
+  const owner = utf8ArrayToStr(frame.data, true);
+  const privateData = new Uint8Array(frame.data.subarray(owner.length + 1));
+
+  return { key: frame.type, info: owner, data: privateData.buffer };
+};
+
+function decodeTextFrame  (frame) {
+  if (frame.size < 2) {
+    return undefined;
+  }
+
+  if (frame.type === 'TXXX') {
+    /*
+    Format:
+    [0]   = {Text Encoding}
+    [1-?] = {Description}\0{Value}
+    */
+    let index = 1;
+    const description = utf8ArrayToStr(frame.data.subarray(index), true);
+
+    index += description.length + 1;
+    const value = utf8ArrayToStr(frame.data.subarray(index));
+
+    return { key: frame.type, info: description, data: value };
+  }
+  /*
+  Format:
+  [0]   = {Text Encoding}
+  [1-?] = {Value}
+  */
+  const text = utf8ArrayToStr(frame.data.subarray(1));
+  return { key: frame.type, data: text };
+};
+
+function decodeURLFrame (frame) {
+  if (frame.type === 'WXXX') {
+    /*
+    Format:
+    [0]   = {Text Encoding}
+    [1-?] = {Description}\0{URL}
+    */
+    if (frame.size < 2) {
+      return undefined;
+    }
+
+    let index = 1;
+    const description  = utf8ArrayToStr(
+      frame.data.subarray(index),
+      true,
+    );
+
+    index += description.length + 1;
+    const value  = utf8ArrayToStr(frame.data.subarray(index));
+
+    return { key: frame.type, info: description, data: value };
+  }
+  /*
+  Format:
+  [0-?] = {URL}
+  */
+  const url  = utf8ArrayToStr(frame.data);
+  return { key: frame.type, data: url };
+};
+
+function readTimeStamp   (
+  timeStampFrame
+) {
+  if (timeStampFrame.data.byteLength === 8) {
+    const data = new Uint8Array(timeStampFrame.data);
+    // timestamp is 33 bit expressed as a big-endian eight-octet number,
+    // with the upper 31 bits set to zero.
+    const pts33Bit = data[3] & 0x1;
+    let timestamp =
+      (data[4] << 23) + (data[5] << 15) + (data[6] << 7) + data[7];
+    timestamp /= 45;
+
+    if (pts33Bit) {
+      timestamp += 47721858.84;
+    } // 2^32 / 90
+
+    return Math.round(timestamp);
+  }
+
+  return undefined;
+};
+ function isFooter  (data, offset) {
+  /*
+   * The footer is a copy of the header, but with a different identifier
+   */
+  if (offset + 10 <= data.length) {
+    // look for '3DI' identifier
+    if (
+      data[offset] === 0x33 &&
+      data[offset + 1] === 0x44 &&
+      data[offset + 2] === 0x49
+    ) {
+      // check version is within range
+      if (data[offset + 3] < 0xff && data[offset + 4] < 0xff) {
+        // check size is within range
+        if (
+          data[offset + 6] < 0x80 &&
+          data[offset + 7] < 0x80 &&
+          data[offset + 8] < 0x80 &&
+          data[offset + 9] < 0x80
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+    function    isHeader   (data, offset)  {
+  /*
+   * http://id3.org/id3v2.3.0
+   * [0]     = 'I'
+   * [1]     = 'D'
+   * [2]     = '3'
+   * [3,4]   = {Version}
+   * [5]     = {Flags}
+   * [6-9]   = {ID3 Size}
+   *
+   * An ID3v2 tag can be detected with the following pattern:
+   *  $49 44 33 yy yy xx zz zz zz zz
+   * Where yy is less than $FF, xx is the 'flags' byte and zz is less than $80
+   */
+  if (offset + 10 <= data.length) {
+    // look for 'ID3' identifier
+    if (
+      data[offset] === 0x49 &&
+      data[offset + 1] === 0x44 &&
+      data[offset + 2] === 0x33
+    ) {
+      // check version is within range
+      if (data[offset + 3] < 0xff && data[offset + 4] < 0xff) {
+        // check size is within range
+        if (
+          data[offset + 6] < 0x80 &&
+          data[offset + 7] < 0x80 &&
+          data[offset + 8] < 0x80 &&
+          data[offset + 9] < 0x80
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+
+       function  readSize  (data, offset) {
+  let size = 0;
+  size = (data[offset] & 0x7f) << 21;
+  size |= (data[offset + 1] & 0x7f) << 14;
+  size |= (data[offset + 2] & 0x7f) << 7;
+  size |= data[offset + 3] & 0x7f;
+  return size;
+};
+
+function canParse  (data, offset) {
+  return (
+    isHeader(data, offset) &&
+    readSize(data, offset + 6) + 10 <= data.length - offset
+  );
+};
+
+function getFrameData  (data) {
+  /*
+  Frame ID       $xx xx xx xx (four characters)
+  Size           $xx xx xx xx
+  Flags          $xx xx
+  */
+  const type = String.fromCharCode(data[0], data[1], data[2], data[3]);
+  const size = readSize(data, 4);
+
+  // skip frame id, size, and flags
+  const offset = 10;
+
+  return { type, size, data: data.subarray(offset, offset + size) };
+};
+
+   function       getID3Frames  (id3Data )  {
+  let offset = 0;
+   frames = [];
+
+  while (isHeader(id3Data, offset)) {
+    const size = readSize(id3Data, offset + 6);
+    // skip past ID3 header
+    offset += 10;
+    const end = offset + size;
+    // loop through frames in the ID3 tag
+    while (offset + 8 < end) {
+      const frameData  = getFrameData(id3Data.subarray(offset));
+      const frame = decodeFrame(frameData);
+      if (frame) {
+        frames.push(frame);
+      }
+
+      // skip frame header and frame data
+      offset += frameData.size + 10;
+    }
+
+    if (isFooter(id3Data, offset)) {
+      offset += 10;
+    }
+  }
+
+  return frames;
+};
+function getID3Data  (  data, offset)  {
+  const front = offset;
+  let length = 0;
+
+  while (isHeader(data, offset)) {
+    // ID3 header is 10 bytes
+    length += 10;
+
+    const size = readSize(data, offset + 6);
+    length += size;
+
+    if (isFooter(data, offset + 10)) {
+      // ID3 footer is 10 bytes
+      length += 10;
+    }
+
+    offset += length;
+  }
+
+  if (length > 0) {
+    return data.subarray(front, front + length);
+  }
+
+  return undefined;
+};
+
             var html5Player = new Html5Player();
             var audios=document .getElementsByTagName('video');
             var video=audios[0];
@@ -493,9 +824,58 @@ player.play();
  var videoSrc = html5Player.settings.url ;// "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8";
  if (Hls.isSupported()) {
     var hls = new Hls();
+    hls.onFragParsingMetadata=function (data) {
+      data.samples.forEach((sample) => {    console.log(sample.pts);
+      var uint8array = new TextEncoder().encode("utf-8");
+		var string = new TextDecoder().decode(sample.data);
+		console.log(string)
+    });
+
+    };
+    hls.on(Hls.Events.MEDIA_ATTACHED,function() {
+    console.log("video and hls.js are now bound together !");
     hls.loadSource(videoSrc);
+    hls.on(Hls.Events.MANIFEST_PARSED, function(event,data) {
+     console.log("manifest loaded, found " + data.levels.length + " quality level");
+    })
+ });
+     hls.on(Hls.Events.FRAG_PARSING_METADATA, function (e,data) {
+      data.samples.forEach((sample) => {
+		var uint8array = new TextEncoder().encode("utf-8");
+		var string = new TextDecoder().decode(sample.data);
+		frames=getID3Frames(sample.data );
+		if(frames)
+		for (let j = 0; j < frames.length; j++) {
+		  const frame = frames[j];
+		  console.log(frame);
+
+		  }
+		 console.log(string);
+      });
+
+		console.log(this._media.textTracks[0].activeCues[0].value.data);
+		this._media.textTracks[0].removeCue( this._media.textTracks[0].activeCues[0]);
+		this._media.textTracks[0].cues.clear();
+    });
+
+
+         hls.on(Hls.Events.FRAG_PARSING_USERDATA,  function (e,data) {
+            data.samples.forEach((sample) => {
+		var uint8array = new TextEncoder().encode("utf-8");
+		var string = new TextDecoder().decode(sample.data);
+		frames=getID3Frames(sample.data );
+		if(frames)
+		for (let j = 0; j < frames.length; j++) {
+		  const frame = frames[j];
+		  console.log(frame);
+
+		  }
+		 console.log(string);
+      });
+    });
+    //hls.loadSource(videoSrc);
     hls.attachMedia(video);
-    video.play();
+    //video.play();
   }
   // HLS.js is not supported on platforms that do not have Media Source
   // Extensions (MSE) enabled.

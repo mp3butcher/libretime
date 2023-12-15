@@ -28,12 +28,9 @@ class CcShowDays extends BaseCcShowDays
     // Returns the start of a show in the timezone it was created in
     public function getLocalStartDateAndTime()
     {
-            Logging::info('getLocalStartDateAndTime');
-            Logging::info($this->getDbTimezone()); 
-           return new DateTime("{$this->getDbFirstShow()} {$this->getDbStartTime()}",new DateTimeZone($this->getDbTimezone()));//BUG?
-        return DateTime::createFromFormat("U.u",microtime(true)
-//            '{$this->getDbFirstShow()} {$this->getDbStartTime()}'
-         //   , new DateTimeZone($this->getDbTimezone())
+        return new DateTime(
+            "{$this->getDbFirstShow()} {$this->getDbStartTime()}",
+            new DateTimeZone($this->getDbTimezone())
         );
 
         // set timezone to that of the show
