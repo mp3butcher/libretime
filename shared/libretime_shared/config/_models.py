@@ -248,6 +248,26 @@ class ShoutcastOutput(BaseModel):
 
     mobile: bool = False
 
+class HLSStream(BaseModel):
+    fragment_prefix: str
+    codec: str
+    sample_rate: int
+    bitrate: str
+
+
+class HLSOutput(BaseModel):
+    kind: Literal["hls"] = "hls"
+    enabled: bool = False
+    public_url: Optional[AnyUrl] = None
+    segment_duration: float = 2.0
+    segment_count: int = 5
+    segments_overhead: int = 5
+    streams: List[HLSStream] = Field([], max_items=10)
+    
+    format: str
+    mount: str
+
+    _mount_no_leading_slash = no_leading_slash_validator("mount")
 
 class SystemOutputKind(str, Enum):
     ALSA = "alsa"
@@ -266,6 +286,7 @@ class SystemOutput(BaseModel):
 class Outputs(BaseModel):
     icecast: List[IcecastOutput] = Field([], max_items=3)
     shoutcast: List[ShoutcastOutput] = Field([], max_items=1)
+    hls: List[HLSOutput] = Field([], max_items=10)
     system: List[SystemOutput] = Field([], max_items=1)
 
     @property
